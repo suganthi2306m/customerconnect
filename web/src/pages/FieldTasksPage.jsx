@@ -428,6 +428,7 @@ function FieldTasksPage() {
         {loadingData ? (
           <LocationLoadingIndicator label="Loading users and customers..." className="py-3" />
         ) : (
+          <>
           <table className="min-w-full text-sm">
           <thead>
             <tr className="text-left text-slate-500">
@@ -529,6 +530,7 @@ function FieldTasksPage() {
               </nav>
             </div>
           )}
+          </>
         )}
       </div>
 
