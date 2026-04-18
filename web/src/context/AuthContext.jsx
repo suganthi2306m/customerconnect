@@ -1,7 +1,12 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
-import apiClient, { API_BASE_URL, TOKEN_KEY, setApiBaseUrl } from '../api/client';
+import apiClient, {
+  API_BASE_URL,
+  TOKEN_KEY,
+  setApiBaseUrl,
+  filterProductionApiBases,
+} from '../api/client';
 
 const AuthContext = createContext(null);
 
@@ -41,8 +46,8 @@ export function AuthProvider({ children }) {
     const devHosts = import.meta.env.DEV
       ? ['http://localhost:9001/api', 'http://localhost:5000/api']
       : [];
-    const baseCandidates = Array.from(
-      new Set([API_BASE_URL, apiClient.defaults.baseURL, ...devHosts].filter(Boolean)),
+    const baseCandidates = filterProductionApiBases(
+      Array.from(new Set([API_BASE_URL, apiClient.defaults.baseURL, ...devHosts].filter(Boolean))),
     );
 
     const performLogin = async () => {

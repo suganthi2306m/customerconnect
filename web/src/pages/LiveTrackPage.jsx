@@ -10,7 +10,9 @@ import { FLUX_PRIMARY, FLUX_ROUTE_GOLD, fluxCircleMarkerIcon, getFluxMapOptions 
 
 const mapContainerStyle = { width: '100%', height: '65vh' };
 const defaultCenter = { lat: 20.5937, lng: 78.9629 };
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+const SOCKET_URL =
+  (import.meta.env.VITE_SOCKET_URL || '').trim() ||
+  (import.meta.env.DEV ? 'http://localhost:5000' : '');
 /** Avoid fitBounds zooming to max when there is only one point (grey “blank” map). */
 const SINGLE_POINT_ZOOM = 11;
 const MAX_ZOOM_AFTER_FIT = 14;
