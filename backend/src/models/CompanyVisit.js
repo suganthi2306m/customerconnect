@@ -15,7 +15,7 @@ const companyVisitSchema = new mongoose.Schema(
     checkInLatitude: { type: Number, required: true },
     checkInLongitude: { type: Number, required: true },
     checkInTime: { type: Date, required: true, index: true },
-    /** Calendar day for reporting (server-local midnight of check-in day). */
+    /** Calendar day for reporting: UTC midnight of the check-in civil day (see device `timeZoneOffsetMinutes` on check-in). */
     visitDate: { type: Date, required: true, index: true },
     checkOutLatitude: { type: Number },
     checkOutLongitude: { type: Number },

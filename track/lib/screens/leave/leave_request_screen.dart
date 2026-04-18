@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:track/config/app_colors.dart';
 import 'package:track/models/attendance_record.dart';
-import 'package:track/screens/attendance/attendance_screen.dart';
 import 'package:track/screens/auth/login_screen.dart';
 import 'package:track/screens/dashboard/dashboard_screen.dart';
 import 'package:track/screens/geo/my_tasks_screen.dart';
@@ -108,12 +107,11 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
   }
 
   void _navigateToIndex(int index) {
-    if (index < 0 || index > 3) return;
+    if (index < 0 || index > 2) return;
     final Widget target = switch (index) {
       0 => const DashboardScreen(),
       1 => const MyTasksScreen(),
       2 => const VisitsScreen(),
-      3 => const AttendanceScreen(),
       _ => const DashboardScreen(),
     };
     Navigator.pushReplacement(
@@ -241,14 +239,6 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-              ),
-              IconButton(
-                onPressed: _openApplySheet,
-                icon: Icon(
-                  Icons.add_circle_outline,
-                  color: Colors.black.withValues(alpha: 0.82),
-                ),
-                tooltip: 'Apply leave',
               ),
               IconButton(
                 onPressed: () =>

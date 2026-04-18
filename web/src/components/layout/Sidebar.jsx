@@ -17,10 +17,7 @@ const trackLinks = [
 const opsLinks = [
   { to: '/dashboard/operations/attendance', label: 'Attendance', icon: 'attendance' },
   { to: '/dashboard/operations/leave', label: 'Leave', icon: 'leave' },
-  { to: '/dashboard/operations/geofences', label: 'Geofences', icon: 'geofence' },
 ];
-
-const settingsLink = { to: '/dashboard/settings', label: 'Settings', icon: 'settings' };
 
 function MenuIcon({ className = 'h-4 w-4' }) {
   return (
@@ -63,13 +60,6 @@ function NavIcon({ name }) {
       return (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className} aria-hidden="true">
           <path d="M4 10.5 12 3l8 7.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1z" />
-        </svg>
-      );
-    case 'settings':
-      return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className} aria-hidden="true">
-          <circle cx="12" cy="12" r="3" />
-          <path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 0 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.2a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.2a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 0 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3h0a1.6 1.6 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.2a1.6 1.6 0 0 0 1 1.5h0a1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 0 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8v0a1.6 1.6 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.2a1.6 1.6 0 0 0-1.4 1z" />
         </svg>
       );
     case 'users':
@@ -116,13 +106,6 @@ function NavIcon({ name }) {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className} aria-hidden="true">
           <path d="M5 19c5.5 0 12.2-2.2 14-9.5C12.5 9.5 8 12.5 5 19Z" />
           <path d="M5 19c-.3-3.6.7-6.7 3.4-9.4" />
-        </svg>
-      );
-    case 'geofence':
-      return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className} aria-hidden="true">
-          <circle cx="12" cy="12" r="3" />
-          <circle cx="12" cy="12" r="8" strokeDasharray="3 3" />
         </svg>
       );
     default:
@@ -272,25 +255,6 @@ function Sidebar({ onLogout, isCollapsed, onToggleCollapse, isMobileOpen, onClos
               </NavLink>
             ))}
           </div>
-        </div>
-
-        <div className="space-y-2 border-t border-white/10 pt-4">
-          <NavLink
-            to={settingsLink.to}
-            onClick={onCloseMobile}
-            title={settingsLink.label}
-            className={navItemClass}
-          >
-            <span className={clsx('flex items-center gap-2', iconOnlyNav && 'justify-center')}>
-              <NavIcon name={settingsLink.icon} />
-              {showNavText && <span>{settingsLink.label}</span>}
-            </span>
-            {iconOnlyNav && (
-              <span className="pointer-events-none absolute left-[calc(100%+10px)] top-1/2 z-50 -translate-y-1/2 whitespace-nowrap rounded-md bg-white px-2 py-1 text-xs font-semibold text-dark opacity-0 shadow-panel transition-opacity group-hover:opacity-100">
-                {settingsLink.label}
-              </span>
-            )}
-          </NavLink>
         </div>
       </nav>
 

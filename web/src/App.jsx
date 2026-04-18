@@ -8,6 +8,8 @@ const HomeDashboardPage = lazy(() => import('./pages/HomeDashboardPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const OrganizationSetupPage = lazy(() => import('./pages/OrganizationSetupPage'));
+const RolesPermissionsPage = lazy(() => import('./pages/RolesPermissionsPage'));
 const CustomersPage = lazy(() => import('./pages/CustomersPage'));
 const CustomerDetailPage = lazy(() => import('./pages/CustomerDetailPage'));
 const FieldTasksPage = lazy(() => import('./pages/FieldTasksPage'));
@@ -65,6 +67,8 @@ function App() {
       >
         <Route index element={withSuspense(<HomeDashboardPage />)} />
         <Route path="profile" element={withSuspense(<ProfilePage />)} />
+        <Route path="settings/organization" element={withSuspense(<OrganizationSetupPage />)} />
+        <Route path="settings/roles" element={withSuspense(<RolesPermissionsPage />)} />
         <Route path="settings" element={withSuspense(<SettingsPage />)} />
         <Route path="users" element={withSuspense(<UsersPage />)} />
         <Route path="users/import" element={withSuspense(<UsersImportPage />)} />

@@ -14,6 +14,7 @@ const companyVisitSchema = new mongoose.Schema(
     checkInLatitude: { type: Number, required: true },
     checkInLongitude: { type: Number, required: true },
     checkInTime: { type: Date, required: true, index: true },
+    /** UTC midnight anchor for the visit’s civil calendar day (device offset at check-in). */
     visitDate: { type: Date, required: true, index: true },
     checkOutLatitude: { type: Number },
     checkOutLongitude: { type: Number },

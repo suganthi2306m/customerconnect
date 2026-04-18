@@ -1,5 +1,19 @@
 import 'package:track/utils/date_display_util.dart';
 
+AttendanceGeo? _geoFromJsonOrLatLng(
+  dynamic locationMap,
+  dynamic lat,
+  dynamic lng,
+) {
+  if (locationMap is Map<String, dynamic>) {
+    return AttendanceGeo.fromJson(locationMap);
+  }
+  if (lat is num && lng is num) {
+    return AttendanceGeo(lat: lat.toDouble(), lng: lng.toDouble());
+  }
+  return null;
+}
+
 class AttendanceGeo {
   const AttendanceGeo({
     required this.lat,
@@ -76,14 +90,16 @@ class AttendanceRecord {
       checkOutTime: checkOut,
       checkInImageUrl: json['checkInImageUrl']?.toString(),
       checkOutImageUrl: json['checkOutImageUrl']?.toString(),
-      checkInLocation: json['checkInLocation'] is Map<String, dynamic>
-          ? AttendanceGeo.fromJson(json['checkInLocation'] as Map<String, dynamic>)
-          : null,
-      checkOutLocation: json['checkOutLocation'] is Map<String, dynamic>
-          ? AttendanceGeo.fromJson(
-              json['checkOutLocation'] as Map<String, dynamic>,
-            )
-          : null,
+      checkInLocation: _geoFromJsonOrLatLng(
+        json['checkInLocation'],
+        json['checkInLat'],
+        json['checkInLng'],
+      ),
+      checkOutLocation: _geoFromJsonOrLatLng(
+        json['checkOutLocation'],
+        json['checkOutLat'],
+        json['checkOutLng'],
+      ),
       durationMinutes: duration,
       status: json['status']?.toString() ??
           json['dayStatus']?.toString() ??

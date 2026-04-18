@@ -7,6 +7,7 @@ import 'package:track/screens/auth/login_screen.dart';
 import 'package:track/screens/dashboard/dashboard_screen.dart';
 import 'package:track/screens/settings/settings_screen.dart';
 import 'package:track/services/auth_service.dart';
+import 'package:track/widgets/app_feedback.dart';
 import 'package:track/widgets/app_shell_navigation.dart';
 import 'package:track/widgets/location_loader.dart';
 
@@ -125,112 +126,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _showChangePasswordDialog() async {
-    final messenger = ScaffoldMessenger.of(context);
-    final oldController = TextEditingController();
-    final newController = TextEditingController();
-    final confirmController = TextEditingController();
-    bool submitting = false;
-    String? error;
-
-    await showDialog<void>(
+    final message = await showDialog<String>(
       context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setLocalState) => AlertDialog(
-          backgroundColor: Colors.white,
-          title: const Text('Update password'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: oldController,
-                  obscureText: true,
-                  decoration: const InputDecoration(labelText: 'Current password'),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: newController,
-                  obscureText: true,
-                  decoration: const InputDecoration(labelText: 'New password'),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: confirmController,
-                  obscureText: true,
-                  decoration: const InputDecoration(labelText: 'Confirm new password'),
-                ),
-                if (error != null) ...[
-                  const SizedBox(height: 10),
-                  Text(error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-                ],
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(onPressed: submitting ? null : () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
-            FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.black,
-              ),
-              onPressed: submitting
-                  ? null
-                  : () async {
-                      final oldPassword = oldController.text.trim();
-                      final newPassword = newController.text.trim();
-                      final confirm = confirmController.text.trim();
-                      if (oldPassword.isEmpty || newPassword.isEmpty || confirm.isEmpty) {
-                        setLocalState(() => error = 'All password fields are required');
-                        return;
-                      }
-                      if (newPassword.length < 6) {
-                        setLocalState(() => error = 'New password must be at least 6 characters');
-                        return;
-                      }
-                      if (newPassword != confirm) {
-                        setLocalState(() => error = 'New password and confirm do not match');
-                        return;
-                      }
-                      setLocalState(() {
-                        submitting = true;
-                        error = null;
-                      });
-                      final result = await AuthService().changePassword(
-                        oldPassword: oldPassword,
-                        newPassword: newPassword,
-                      );
-                      if (!mounted || !ctx.mounted) return;
-                      if (result['success'] == true) {
-                        Navigator.of(ctx).pop();
-                        messenger.showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              result['message']?.toString() ?? 'Password updated successfully',
-                            ),
-                          ),
-                        );
-                      } else {
-                        setLocalState(() {
-                          submitting = false;
-                          error = result['message']?.toString() ?? 'Failed to update password';
-                        });
-                      }
-                    },
-              child: submitting
-                  ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: LocationLoader(size: 20),
-                    )
-                  : const Text('Save'),
-            ),
-          ],
-        ),
-      ),
+      barrierDismissible: false,
+      builder: (_) => const _ChangePasswordDialog(),
     );
-    oldController.dispose();
-    newController.dispose();
-    confirmController.dispose();
+    if (message != null && message.isNotEmpty && mounted) {
+      AppFeedback.success(context, message);
+    }
   }
 
   void _showSupportDialog() {
@@ -470,18 +373,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                       ),
                       const SizedBox(height: 20),
-                      FilledButton.icon(
-                        onPressed: _showChangePasswordDialog,
-                        icon: const Icon(Icons.lock_reset_rounded),
-                        label: const Text('Update password'),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.black,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                          textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
-                        ),
-                      ),
+                      _PasswordUpdateCard(onTap: _showChangePasswordDialog),
                       const SizedBox(height: 12),
                       _ProfileMenuCard(
                         icon: Icons.support_agent_rounded,
@@ -504,6 +396,320 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
               ),
+      ),
+    );
+  }
+}
+
+/// Tappable card — same visual language as Support, for changing password.
+class _PasswordUpdateCard extends StatelessWidget {
+  const _PasswordUpdateCard({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      elevation: 1,
+      shadowColor: Colors.black26,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.45), width: 1.2),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.28),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.lock_reset_rounded, color: Colors.black87, size: 24),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Update password',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.black87),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Change your sign-in password',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black.withValues(alpha: 0.48),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.06),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.chevron_right_rounded, color: Colors.black54),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ChangePasswordDialog extends StatefulWidget {
+  const _ChangePasswordDialog();
+
+  @override
+  State<_ChangePasswordDialog> createState() => _ChangePasswordDialogState();
+}
+
+class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
+  final _old = TextEditingController();
+  final _new = TextEditingController();
+  final _confirm = TextEditingController();
+  bool _hideOld = true;
+  bool _hideNew = true;
+  bool _hideConfirm = true;
+  bool _submitting = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _old.dispose();
+    _new.dispose();
+    _confirm.dispose();
+    super.dispose();
+  }
+
+  InputDecoration _fieldDecoration(
+    BuildContext context, {
+    required String label,
+    required IconData icon,
+    required bool obscure,
+    required VoidCallback onToggleVisibility,
+  }) {
+    final borderColor = Colors.black.withValues(alpha: 0.09);
+    return InputDecoration(
+      labelText: label,
+      labelStyle: TextStyle(
+        fontWeight: FontWeight.w600,
+        color: Colors.black.withValues(alpha: 0.55),
+        fontSize: 14,
+      ),
+      prefixIcon: Icon(icon, size: 22, color: Colors.black.withValues(alpha: 0.45)),
+      suffixIcon: IconButton(
+        tooltip: obscure ? 'Show' : 'Hide',
+        onPressed: onToggleVisibility,
+        icon: Icon(obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 22),
+      ),
+      filled: true,
+      fillColor: const Color(0xFFF4F4F6),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 14),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: borderColor)),
+      enabledBorder:
+          OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: borderColor)),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: AppColors.primary, width: 1.8),
+      ),
+    );
+  }
+
+  Future<void> _submit() async {
+    final oldPassword = _old.text.trim();
+    final newPassword = _new.text.trim();
+    final confirm = _confirm.text.trim();
+    if (oldPassword.isEmpty || newPassword.isEmpty || confirm.isEmpty) {
+      setState(() => _error = 'All password fields are required');
+      return;
+    }
+    if (newPassword.length < 6) {
+      setState(() => _error = 'New password must be at least 6 characters');
+      return;
+    }
+    if (newPassword != confirm) {
+      setState(() => _error = 'New password and confirmation do not match');
+      return;
+    }
+    setState(() {
+      _submitting = true;
+      _error = null;
+    });
+    final result = await AuthService().changePassword(
+      oldPassword: oldPassword,
+      newPassword: newPassword,
+    );
+    if (!mounted) return;
+    if (result['success'] == true) {
+      final msg = result['message']?.toString().trim();
+      Navigator.of(context).pop(
+        msg != null && msg.isNotEmpty ? msg : 'Password updated successfully',
+      );
+    } else {
+      setState(() {
+        _submitting = false;
+        _error = result['message']?.toString() ?? 'Failed to update password';
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 22, vertical: 28),
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.24),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Icon(Icons.lock_reset_rounded, size: 28, color: Colors.black87),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Update password',
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, height: 1.15),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Use at least 6 characters. You will stay signed in.',
+                          style: TextStyle(
+                            fontSize: 13,
+                            height: 1.35,
+                            color: Colors.black.withValues(alpha: 0.5),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: _submitting ? null : () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close_rounded),
+                    style: IconButton.styleFrom(foregroundColor: Colors.black45),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 22),
+              TextField(
+                controller: _old,
+                obscureText: _hideOld,
+                textInputAction: TextInputAction.next,
+                decoration: _fieldDecoration(
+                  context,
+                  label: 'Current password',
+                  icon: Icons.key_outlined,
+                  obscure: _hideOld,
+                  onToggleVisibility: () => setState(() => _hideOld = !_hideOld),
+                ),
+              ),
+              const SizedBox(height: 14),
+              TextField(
+                controller: _new,
+                obscureText: _hideNew,
+                textInputAction: TextInputAction.next,
+                decoration: _fieldDecoration(
+                  context,
+                  label: 'New password',
+                  icon: Icons.lock_outline_rounded,
+                  obscure: _hideNew,
+                  onToggleVisibility: () => setState(() => _hideNew = !_hideNew),
+                ),
+              ),
+              const SizedBox(height: 14),
+              TextField(
+                controller: _confirm,
+                obscureText: _hideConfirm,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => _submitting ? null : _submit(),
+                decoration: _fieldDecoration(
+                  context,
+                  label: 'Confirm new password',
+                  icon: Icons.lock_person_outlined,
+                  obscure: _hideConfirm,
+                  onToggleVisibility: () => setState(() => _hideConfirm = !_hideConfirm),
+                ),
+              ),
+              if (_error != null) ...[
+                const SizedBox(height: 14),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.85),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    _error!,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onErrorContainer,
+                    ),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: _submitting ? null : () => Navigator.of(context).pop(),
+                    child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w700)),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      elevation: 0,
+                    ),
+                    onPressed: _submitting ? null : _submit,
+                    child: _submitting
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: LocationLoader(size: 20),
+                          )
+                        : const Text('Save password', style: TextStyle(fontWeight: FontWeight.w800)),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import clsx from 'clsx';
 import apiClient from '../api/client';
 import { LiveTrackWordmark } from '../components/brand/LiveTrackWordmark';
+import BranchesEditor from '../components/settings/BranchesEditor';
 
 const emptyCompanyForm = { name: '', address: '', phone: '', email: '' };
 const defaultPassword = { currentPassword: '', newPassword: '' };
@@ -92,20 +93,10 @@ function SettingsPage() {
     }
   };
 
-  const saveBranches = async (event) => {
-    event.preventDefault();
+  const saveBranches = async (cleaned) => {
     setSavingBranches(true);
     setMessage('');
     setError('');
-    const cleaned = branches
-      .filter((b) => String(b.name || '').trim())
-      .map((b) => ({
-        ...(b._id && /^[a-f\d]{24}$/i.test(b._id) ? { _id: b._id } : {}),
-        name: String(b.name).trim(),
-        code: String(b.code || '').trim(),
-        address: String(b.address || '').trim(),
-        phone: String(b.phone || '').trim(),
-      }));
     try {
       await apiClient.put('/company', { ...companyForm, branches: cleaned });
       setMessage('Branches saved. Geofences can now be linked to these branches.');
@@ -115,18 +106,6 @@ function SettingsPage() {
     } finally {
       setSavingBranches(false);
     }
-  };
-
-  const addBranchRow = () => {
-    setBranches((rows) => [...rows, { _id: '', name: '', code: '', address: '', phone: '' }]);
-  };
-
-  const updateBranch = (index, key, value) => {
-    setBranches((rows) => rows.map((r, i) => (i === index ? { ...r, [key]: value } : r)));
-  };
-
-  const removeBranch = (index) => {
-    setBranches((rows) => rows.filter((_, i) => i !== index));
   };
 
   const changePassword = async (event) => {
@@ -245,84 +224,13 @@ function SettingsPage() {
             <strong>Operations → Geofences</strong>.
           </p>
 
-          {loadingCompany ? (
-            <p className="mt-6 text-sm text-slate-500">Loading…</p>
-          ) : (
-            <form className="mt-6 space-y-4" onSubmit={saveBranches}>
-              <div className="overflow-x-auto rounded-xl border border-neutral-200">
-                <table className="min-w-[36rem] w-full text-sm">
-                  <thead>
-                    <tr className="bg-flux-panel text-left text-xs font-bold uppercase tracking-wide text-slate-500">
-                      <th className="px-3 py-2">Name</th>
-                      <th className="px-3 py-2">Code</th>
-                      <th className="min-w-[12rem] px-3 py-2">Address</th>
-                      <th className="px-3 py-2">Phone</th>
-                      <th className="w-24 px-3 py-2" />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {branches.map((b, i) => (
-                      <tr key={b._id || `new-${i}`} className="border-t border-neutral-100">
-                        <td className="px-2 py-2">
-                          <input
-                            className="form-input py-1.5 text-sm"
-                            value={b.name}
-                            onChange={(e) => updateBranch(i, 'name', e.target.value)}
-                            placeholder="Branch name"
-                            required
-                          />
-                        </td>
-                        <td className="px-2 py-2">
-                          <input
-                            className="form-input py-1.5 text-sm"
-                            value={b.code}
-                            onChange={(e) => updateBranch(i, 'code', e.target.value)}
-                            placeholder="Code"
-                          />
-                        </td>
-                        <td className="px-2 py-2">
-                          <input
-                            className="form-input py-1.5 text-sm"
-                            value={b.address}
-                            onChange={(e) => updateBranch(i, 'address', e.target.value)}
-                            placeholder="Address"
-                          />
-                        </td>
-                        <td className="px-2 py-2">
-                          <input
-                            className="form-input py-1.5 text-sm"
-                            value={b.phone}
-                            onChange={(e) => updateBranch(i, 'phone', e.target.value)}
-                            placeholder="Phone"
-                          />
-                        </td>
-                        <td className="px-2 py-2">
-                          <button type="button" className="text-xs font-semibold text-red-600 hover:underline" onClick={() => removeBranch(i)}>
-                            Remove
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                    {!branches.length && (
-                      <tr>
-                        <td colSpan={5} className="px-3 py-8 text-center text-slate-500">
-                          No branches yet. Add one to enable per-branch geofences.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <button type="button" className="btn-secondary" onClick={addBranchRow}>
-                  Add branch
-                </button>
-                <button type="submit" className="btn-primary disabled:opacity-60" disabled={savingBranches}>
-                  {savingBranches ? 'Saving…' : 'Save branches'}
-                </button>
-              </div>
-            </form>
-          )}
+          <BranchesEditor
+            branches={branches}
+            setBranches={setBranches}
+            loading={loadingCompany}
+            saving={savingBranches}
+            onSave={saveBranches}
+          />
         </div>
       )}
 

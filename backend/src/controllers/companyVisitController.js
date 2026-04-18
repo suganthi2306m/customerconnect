@@ -11,16 +11,53 @@ const {
 /** Slightly above app 50m radius to absorb GPS noise. */
 const MAX_SERVER_CHECKIN_RADIUS_M = 55;
 
-function startOfLocalDay(d = new Date()) {
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  return x;
+/**
+ * Reporting anchor for `visitDate`: UTC midnight of the Gregorian calendar day
+ * that contains [checkInUtc] in a zone where (local − UTC) = offsetMinutes
+ * (same sign as Dart `DateTime.timeZoneOffset.inMinutes`, e.g. IST = +330).
+ * If offset is omitted / invalid, uses 0 (UTC civil day of the instant).
+ */
+function visitDateAnchorForCheckIn(checkInUtc, offsetMinutes) {
+  const off = Number.isFinite(offsetMinutes) ? offsetMinutes : 0;
+  const shifted = checkInUtc.getTime() + off * 60 * 1000;
+  const u = new Date(shifted);
+  const y = u.getUTCFullYear();
+  const m = u.getUTCMonth();
+  const d = u.getUTCDate();
+  return new Date(Date.UTC(y, m, d, 0, 0, 0, 0));
 }
 
-function endOfLocalDay(d = new Date()) {
-  const x = new Date(d);
-  x.setHours(23, 59, 59, 999);
-  return x;
+function readDeviceTimeZoneOffsetMinutes(body) {
+  if (!body || typeof body !== 'object') return 0;
+  const raw = body.timeZoneOffsetMinutes ?? body.timezoneOffsetMinutes;
+  const n = typeof raw === 'string' ? parseInt(raw, 10) : Number(raw);
+  if (!Number.isFinite(n) || n < -840 || n > 840) return 0;
+  return n;
+}
+
+/** Bounds for `visitDate` when the client sends `YYYY-MM-DD` (civil triplet, no TZ in string). */
+function utcCalendarDayBoundsFromYmd(dayStr) {
+  const s = String(dayStr || '').trim();
+  if (!s) return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  if (m) {
+    const y = parseInt(m[1], 10);
+    const mo = parseInt(m[2], 10) - 1;
+    const d = parseInt(m[3], 10);
+    return {
+      $gte: new Date(Date.UTC(y, mo, d, 0, 0, 0, 0)),
+      $lte: new Date(Date.UTC(y, mo, d, 23, 59, 59, 999)),
+    };
+  }
+  const d = new Date(s.includes('T') ? s : `${s}T12:00:00Z`);
+  if (Number.isNaN(d.getTime())) return null;
+  const y = d.getUTCFullYear();
+  const mo = d.getUTCMonth();
+  const day = d.getUTCDate();
+  return {
+    $gte: new Date(Date.UTC(y, mo, day, 0, 0, 0, 0)),
+    $lte: new Date(Date.UTC(y, mo, day, 23, 59, 59, 999)),
+  };
 }
 
 function extractObjectId(value) {
@@ -163,6 +200,7 @@ exports.checkIn = async (req, res) => {
     }
 
     const now = new Date();
+    const tzOffset = readDeviceTimeZoneOffsetMinutes(req.body);
     /** Multiple completed visits per customer per day are allowed after checkout; only an open visit blocks a new check-in (handled above). */
 
     await closeOpenVisitForOtherCustomer({
@@ -194,7 +232,7 @@ exports.checkIn = async (req, res) => {
       checkInLatitude: lat,
       checkInLongitude: lng,
       checkInTime: now,
-      visitDate: startOfLocalDay(now),
+      visitDate: visitDateAnchorForCheckIn(now, tzOffset),
       status: 'open',
       source: visitSource.slice(0, 64),
     });
@@ -347,10 +385,8 @@ exports.listMine = async (req, res) => {
     }
     const dayStr = req.query.date != null ? String(req.query.date).trim() : '';
     if (dayStr.length > 0) {
-      const d = new Date(dayStr.includes('T') ? dayStr : `${dayStr}T12:00:00`);
-      if (!Number.isNaN(d.getTime())) {
-        q.visitDate = { $gte: startOfLocalDay(d), $lte: endOfLocalDay(d) };
-      }
+      const bounds = utcCalendarDayBoundsFromYmd(dayStr);
+      if (bounds) q.visitDate = bounds;
     }
     const raw = await CompanyVisit.find(q)
       .sort({ checkInTime: -1 })
@@ -376,11 +412,7 @@ function escapeRegex(str) {
 }
 
 function parseDayBounds(dayStr) {
-  const s = String(dayStr || '').trim();
-  if (!s) return null;
-  const d = new Date(s.includes('T') ? s : `${s}T12:00:00`);
-  if (Number.isNaN(d.getTime())) return null;
-  return { $gte: startOfLocalDay(d), $lte: endOfLocalDay(d) };
+  return utcCalendarDayBoundsFromYmd(dayStr);
 }
 
 /**

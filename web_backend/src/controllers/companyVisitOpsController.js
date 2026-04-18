@@ -3,16 +3,29 @@ const Company = require('../models/Company');
 const CompanyVisit = require('../models/CompanyVisit');
 const User = require('../models/User');
 
-function startOfLocalDay(d = new Date()) {
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  return x;
-}
-
-function endOfLocalDay(d = new Date()) {
-  const x = new Date(d);
-  x.setHours(23, 59, 59, 999);
-  return x;
+/** Bounds for `visitDate` when the client sends `YYYY-MM-DD` (civil triplet). */
+function utcCalendarDayBoundsFromYmd(dayStr) {
+  const s = String(dayStr || '').trim();
+  if (!s) return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  if (m) {
+    const y = parseInt(m[1], 10);
+    const mo = parseInt(m[2], 10) - 1;
+    const d = parseInt(m[3], 10);
+    return {
+      $gte: new Date(Date.UTC(y, mo, d, 0, 0, 0, 0)),
+      $lte: new Date(Date.UTC(y, mo, d, 23, 59, 59, 999)),
+    };
+  }
+  const d = new Date(s.includes('T') ? s : `${s}T12:00:00Z`);
+  if (Number.isNaN(d.getTime())) return null;
+  const y = d.getUTCFullYear();
+  const mo = d.getUTCMonth();
+  const day = d.getUTCDate();
+  return {
+    $gte: new Date(Date.UTC(y, mo, day, 0, 0, 0, 0)),
+    $lte: new Date(Date.UTC(y, mo, day, 23, 59, 59, 999)),
+  };
 }
 
 function escapeRegex(str) {
@@ -20,11 +33,7 @@ function escapeRegex(str) {
 }
 
 function parseDayBounds(dayStr) {
-  const s = String(dayStr || '').trim();
-  if (!s) return null;
-  const d = new Date(s.includes('T') ? s : `${s}T12:00:00`);
-  if (Number.isNaN(d.getTime())) return null;
-  return { $gte: startOfLocalDay(d), $lte: endOfLocalDay(d) };
+  return utcCalendarDayBoundsFromYmd(dayStr);
 }
 
 function siteAddressFromCustomerLean(cust) {

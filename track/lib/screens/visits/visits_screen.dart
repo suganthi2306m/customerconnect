@@ -5,11 +5,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:track/config/app_colors.dart';
 import 'package:track/models/company_visit.dart';
-import 'package:track/screens/attendance/attendance_screen.dart';
 import 'package:track/screens/auth/login_screen.dart';
 import 'package:track/screens/dashboard/dashboard_screen.dart';
 import 'package:track/screens/geo/add_customer_screen.dart';
-import 'package:track/screens/geo/add_task_screen.dart';
 import 'package:track/screens/geo/my_tasks_screen.dart';
 import 'package:track/screens/profile/profile_screen.dart';
 import 'package:track/screens/settings/settings_screen.dart';
@@ -145,7 +143,6 @@ class _VisitsScreenState extends State<VisitsScreen> {
     final Widget target = switch (index) {
       0 => const DashboardScreen(),
       1 => const MyTasksScreen(),
-      3 => const AttendanceScreen(),
       _ => const VisitsScreen(),
     };
     Navigator.pushReplacement(
@@ -167,16 +164,6 @@ class _VisitsScreenState extends State<VisitsScreen> {
   void _openAppMenu(BuildContext context) {
     showAppDrawerMenu(
       context,
-      onAddTask: _loggedInUserId != null && _loggedInUserId!.isNotEmpty
-          ? () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => AddTaskScreen(userId: _loggedInUserId!),
-                ),
-              ).then((_) => _fetchVisits());
-            }
-          : null,
       onAddCustomer: () {
         Navigator.push(
           context,

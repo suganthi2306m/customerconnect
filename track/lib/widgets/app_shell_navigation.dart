@@ -233,11 +233,6 @@ class OvalBottomNavBar extends StatelessWidget {
                 activeIcon: Icon(Icons.storefront_rounded),
                 label: 'Visits',
               ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.fact_check_outlined),
-                activeIcon: Icon(Icons.fact_check_rounded),
-                label: 'Attendance',
-              ),
             ],
           ),
         ),

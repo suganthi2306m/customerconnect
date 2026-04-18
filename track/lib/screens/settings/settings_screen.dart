@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:track/screens/auth/login_screen.dart';
 import 'package:track/screens/dashboard/dashboard_screen.dart';
 import 'package:track/screens/geo/my_tasks_screen.dart';
-import 'package:track/screens/attendance/attendance_screen.dart';
 import 'package:track/screens/profile/profile_screen.dart';
 import 'package:track/screens/settings/permission_settings_screen.dart';
 import 'package:track/screens/visits/visits_screen.dart';
@@ -13,13 +12,12 @@ class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   void _navigateToIndex(BuildContext context, int index) {
-    if (index < 0 || index > 4) return;
+    if (index < 0 || index > 3) return;
     final Widget target = switch (index) {
       0 => const DashboardScreen(),
       1 => const MyTasksScreen(),
       2 => const VisitsScreen(),
-      3 => const AttendanceScreen(),
-      4 => const ProfileScreen(),
+      3 => const ProfileScreen(),
       _ => const DashboardScreen(),
     };
     Navigator.pushReplacement(
@@ -70,7 +68,7 @@ class SettingsScreen extends StatelessWidget {
             onPressed: () {
               showAppDrawerMenu(
                 context,
-                onProfile: () => _navigateToIndex(context, 4),
+                onProfile: () => _navigateToIndex(context, 3),
                 onSettings: () {},
                 onLogout: () => _logout(context),
               );

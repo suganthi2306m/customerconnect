@@ -7,11 +7,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:track/config/app_colors.dart';
 import 'package:track/models/attendance_record.dart';
 import 'package:track/models/task.dart';
-import 'package:track/screens/attendance/attendance_screen.dart';
 import 'package:track/screens/auth/login_screen.dart';
 import 'package:track/screens/customers/company_customers_screen.dart';
 import 'package:track/screens/geo/add_customer_screen.dart';
-import 'package:track/screens/geo/add_task_screen.dart';
 import 'package:track/screens/geo/my_tasks_screen.dart';
 import 'package:track/widgets/task_brand_icon.dart';
 import 'package:track/screens/profile/profile_screen.dart';
@@ -423,9 +421,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final Widget target = switch (index) {
       1 => const MyTasksScreen(),
       2 => const VisitsScreen(),
-      3 => const AttendanceScreen(),
-      4 => const ProfileScreen(),
-      5 => const SettingsScreen(),
+      3 => const ProfileScreen(),
+      4 => const SettingsScreen(),
       _ => const DashboardScreen(),
     };
     Navigator.push(
@@ -493,23 +490,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  void _openAddTask(BuildContext context) {
-    if (_userId == null || _userId!.isEmpty) return;
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => AddTaskScreen(userId: _userId!)),
-    ).then((_) => _bootstrap());
-  }
-
   void _openAppMenu(BuildContext context) {
     showAppDrawerMenu(
       context,
-      onAddTask: _userId != null && _userId!.isNotEmpty
-          ? () => _openAddTask(context)
-          : null,
       onAddCustomer: () => _openCreateCustomer(context),
-      onProfile: () => _navigateToIndex(context, 4),
-      onSettings: () => _navigateToIndex(context, 5),
+      onProfile: () => _navigateToIndex(context, 3),
+      onSettings: () => _navigateToIndex(context, 4),
       onLogout: () => _logout(context),
     );
   }
@@ -819,7 +805,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _circleIconButton(
           icon: Icons.person_outline_rounded,
           tooltip: 'Profile',
-          onPressed: () => _navigateToIndex(context, 4),
+          onPressed: () => _navigateToIndex(context, 3),
         ),
       ],
     );
@@ -898,24 +884,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               tooltip: 'Customers',
                               onTap: () => _openCompanyCustomers(context),
                             ),
-                            if (_userId != null && _userId!.isNotEmpty)
-                              _shortcutChip(
-                                icon: Icons.add_location_alt_rounded,
-                                selected: false,
-                                tooltip: 'Add task',
-                                onTap: () => _openAddTask(context),
-                              ),
                             _shortcutChip(
                               icon: Icons.person_outline_rounded,
                               selected: false,
                               tooltip: 'Profile',
-                              onTap: () => _navigateToIndex(context, 4),
+                              onTap: () => _navigateToIndex(context, 3),
                             ),
                             _shortcutChip(
                               icon: Icons.settings_outlined,
                               selected: false,
                               tooltip: 'Settings',
-                              onTap: () => _navigateToIndex(context, 5),
+                              onTap: () => _navigateToIndex(context, 4),
                             ),
                           ],
                         ),

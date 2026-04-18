@@ -166,11 +166,10 @@ class _AttendanceSummaryScreenState extends State<AttendanceSummaryScreen> {
     }
   }
 
-  ({int present, int absent, int half, int leave}) _monthStats() {
+  ({int present, int absent, int half}) _monthStats() {
     var present = 0;
     var absent = 0;
     var half = 0;
-    var leaveDays = 0;
     final today = _d0(DateTime.now());
     for (var i = 1; i <= _daysInMonth; i++) {
       final day = DateTime(_monthFirst.year, _monthFirst.month, i);
@@ -179,7 +178,6 @@ class _AttendanceSummaryScreenState extends State<AttendanceSummaryScreen> {
       final leave = _approvedLeaveForDay(day);
       final r = _recordFor(day);
       if (leave != null) {
-        leaveDays++;
         continue;
       }
       if (r == null) {
@@ -203,7 +201,7 @@ class _AttendanceSummaryScreenState extends State<AttendanceSummaryScreen> {
           break;
       }
     }
-    return (present: present, absent: absent, half: half, leave: leaveDays);
+    return (present: present, absent: absent, half: half);
   }
 
   @override
@@ -306,7 +304,6 @@ class _AttendanceSummaryScreenState extends State<AttendanceSummaryScreen> {
                             present: stats.present,
                             absent: stats.absent,
                             half: stats.half,
-                            leave: stats.leave,
                           ),
                         ),
                       ),
@@ -424,13 +421,11 @@ class _StatsGrid extends StatelessWidget {
     required this.present,
     required this.absent,
     required this.half,
-    required this.leave,
   });
 
   final int present;
   final int absent;
   final int half;
-  final int leave;
 
   @override
   Widget build(BuildContext context) {
@@ -439,7 +434,6 @@ class _StatsGrid extends StatelessWidget {
       ('Present', present.toString()),
       ('Absent', absent.toString()),
       ('Half day', half.toString()),
-      ('Leave', leave.toString()),
       ('Fine', '0:00'),
       ('Overtime', '0:00'),
     ];
